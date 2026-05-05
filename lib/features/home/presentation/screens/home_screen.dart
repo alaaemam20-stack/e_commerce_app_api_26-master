@@ -1,3 +1,5 @@
+import 'package:ecommerce_app_api_26/features/home/data/models/product_model.dart';
+import 'package:ecommerce_app_api_26/features/home/data/products_api/products_api.dart';
 import 'package:flutter/material.dart';
 import 'package:ecommerce_app_api_26/features/home/presentation/widgets/product_card.dart';
 
@@ -29,8 +31,14 @@ class HomeScreen extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Welcome,', style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
-                const Text('Our Shop', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.black)),
+                Text('Welcome,',
+                    style:
+                        TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+                const Text('Our Shop',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 22,
+                        color: Colors.black)),
               ],
             ),
             Container(
@@ -83,7 +91,8 @@ class HomeScreen extends StatelessWidget {
                   bool isAll = cat == 'All';
                   return Container(
                     margin: const EdgeInsets.only(right: 12),
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 10),
                     decoration: BoxDecoration(
                       color: isAll ? Colors.blue : Colors.white,
                       borderRadius: BorderRadius.circular(12),
@@ -107,28 +116,45 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             // Products Grid
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.7,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: dummyProducts.length,
-                itemBuilder: (context, index) {
-                  final product = dummyProducts[index];
-                  return ProductCard(
-                    title: product['title'],
-                    price: product['price'],
-                    description: product['description'],
-                    image: product['image'],
-                  );
-                },
-              ),
+            FutureBuilder<List<ProductModel>>(
+              future: ProductsApi().getAllProducts(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError || snapshot.data == null) {
+                  return const Center(
+                      child: Text(
+                    "Error",
+                    style: TextStyle(fontSize: 25, color: Colors.red),
+                  ));
+                }
+                List<ProductModel> products = snapshot.data!;
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      childAspectRatio: 0.7,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                    ),
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      final product = products[index];
+                      return ProductCard(
+                        title: product.title!,
+                        price: product.price!,
+                        description: product.description!,
+                        image: product.images![0],
+                      );
+                    },
+                  ),
+                );
+              },
             ),
             const SizedBox(height: 20),
           ],

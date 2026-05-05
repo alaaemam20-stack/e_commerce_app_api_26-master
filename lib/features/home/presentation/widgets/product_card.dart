@@ -44,7 +44,29 @@ class ProductCard extends StatelessWidget {
               ),
               child: Stack(
                 children: [
-                  const Center(child: Icon(Icons.shopping_bag_outlined, size: 40, color: Colors.blue)),
+                   Center(
+                    child: Expanded(
+                      child: ClipRRect(
+                        borderRadius:BorderRadius.circular(10),
+                        child: Image.network(
+                          image,
+
+                          fit: BoxFit.cover,
+                          width:double.infinity,
+                      
+                      
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return const CircularProgressIndicator();
+                          },
+                      
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(Icons.broken_image, size: 40, color: Colors.grey);
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
                   PositionBag(
                     top: 10,
                     right: 10,
@@ -67,7 +89,7 @@ class ProductCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title,
+                  title??"no title",
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

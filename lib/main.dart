@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:ecommerce_app_api_26/core/theme/app_theme.dart';
 
 import 'features/auth/presentation/screens/signup_screen.dart';
+import 'features/profile/presentation/screens/profile_screen.dart';
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+
   const MyApp({super.key});
 
   @override
@@ -15,7 +18,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: appTheme,
-      home: const SignupScreen(),
+      home: const LoginScreen(),
     );
   }
 }

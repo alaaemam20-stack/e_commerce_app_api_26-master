@@ -1,5 +1,5 @@
 import 'package:ecommerce_app_api_26/features/auth/data/auth_api/auth_api.dart';
-import 'package:ecommerce_app_api_26/features/auth/data/models/token_model.dart';
+import 'package:ecommerce_app_api_26/features/auth/data/models/login_response.dart';
 import 'package:ecommerce_app_api_26/features/home/presentation/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:ecommerce_app_api_26/features/auth/presentation/screens/signup_screen.dart';
@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ).showSnackBar(SnackBar(content: Text("Logged in")));
         Navigator.of(
           context,
-        ).pushReplacement(MaterialPageRoute(builder: (_) => HomeScreen()));
+        ).pushReplacement(MaterialPageRoute(builder: (_) => MainWrapper()));
       } catch (error) {
         setState(() {
           isLoading = false;

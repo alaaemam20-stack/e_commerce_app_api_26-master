@@ -1,36 +1,41 @@
 import 'dart:convert';
 
 import 'package:ecommerce_app_api_26/core/EndPoints/endPoints.dart';
-import 'package:ecommerce_app_api_26/features/auth/data/models/error_model.dart';
-import 'package:ecommerce_app_api_26/features/auth/data/models/token_model.dart';
+import 'package:ecommerce_app_api_26/core/storage/storage_helper.dart';
+import 'package:ecommerce_app_api_26/features/auth/data/models/login_error.dart';
+import 'package:ecommerce_app_api_26/features/auth/data/models/request_models/login_request.dart';
+import 'package:ecommerce_app_api_26/features/auth/data/models/login_response.dart';
+import 'package:ecommerce_app_api_26/features/auth/data/models/request_models/signup_request.dart';
 import 'package:http/http.dart' as http;
 
-import '../models/user_model.dart';
+import '../models/signupResponseModel.dart';
 
 class AuthApi {
   //methode deal with api requests(login,signup)
-  Future<TokenModel> login({
+  Future<LoginResponseModel> login({
     required String email,
     required String password,
   }) async {
     //need url+ body
 
     Uri url = Uri.parse(Endpoints.baseUrl + Endpoints.login);
-    Map<String, dynamic> RequestBody = {
-      ApiKeys.email: email,
-      ApiKeys.password: password,
-    };
+   LoginRequestModel loginrequest=LoginRequestModel(
+     email: email,
+     password:password,
+   );
     var response = await http.post(
       url,
-      body: jsonEncode(RequestBody),
+      body: jsonEncode(loginrequest.tojson()),
       headers: {"Content-Type": "application/json"},
     );
 
     String responseBody = response.body;
     var json = jsonDecode(responseBody);
     if (response.statusCode == 200 || response.statusCode == 201) {
-      TokenModel tokens = TokenModel.fromJson(json);
-      return tokens;
+LoginResponseModel tokenModel=LoginResponseModel.fromJson(json);
+StorageHelper.saveToken(tokenModel.accessToken??"");
+
+      return tokenModel;
     } else {
       ErrorModel error = ErrorModel.fromJson(json);
       throw Exception(error.message);
@@ -43,6 +48,9 @@ class AuthApi {
     required String password,
   })async {
     Uri url = Uri.parse(Endpoints.baseUrl + Endpoints.signup);
+    SignupRequestModel signupRequestModel=SignupRequestModel(
+        name: name, email: email,
+        password: password);
     Map<String, dynamic> requestedBody = {
       ApiKeys.name: name,
       ApiKeys.email: email,
@@ -51,7 +59,7 @@ class AuthApi {
     };
     var response  = await  http.post(
       url,
-      body: jsonEncode(requestedBody),
+      body: jsonEncode(signupRequestModel.tojson()),
       headers: {"Content-Type": "application/json"},
     );
     String responseBody = response.body;
