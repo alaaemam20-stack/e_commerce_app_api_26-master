@@ -69,6 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+
   /// Get Profile
   Future<void> getProfile() async {
     try {

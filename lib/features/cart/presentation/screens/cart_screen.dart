@@ -75,6 +75,16 @@ class _CartScreenState extends State<CartScreen> {
 
                             await getCart();
                           }),
+                          SizedBox(width: 8),
+                          IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: ()async{
+                              await CartLocalStorage.removeProduct(product.id!);
+                              await getCart();
+                            },
+                          ),
+
+
                         ]));}
                      ),
                      ),
