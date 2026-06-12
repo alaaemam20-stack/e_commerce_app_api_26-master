@@ -1,17 +1,47 @@
+import 'package:ecommerce_app_api_26/features/home/data/models/product_model.dart';
 import 'package:flutter/material.dart';
+import 'package:ecommerce_app_api_26/features/cart/data/models/cart_item_model.dart';
+import 'package:ecommerce_app_api_26/features/cart/data/cart_local_storage.dart';
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> cartItems = List.generate(3, (index) => {
-      'title': 'Premium Product ${index + 1}',
-      'price': (index + 1) * 35.0,
-      'quantity': 1,
-    });
+  State<CartScreen> createState() => _CartScreenState();
+}
 
-    return Scaffold(
+class _CartScreenState extends State<CartScreen> {
+  List<ProductModel> cartItems = [];
+  bool isLoading = true;
+  double totalPrice() {
+    double total = 0;
+    for (var item in cartItems) {
+      total += (item.price ?? 0);
+    }
+    return total;
+  }
+
+
+  Future<void> getCart() async {
+    cartItems = await CartLocalStorage.getCardProducts();
+    setState(() {
+      isLoading = false;
+    });
+  }
+  @override
+  void initState() {
+    super.initState();
+    getCart();
+  }
+
+  Widget build(BuildContext context) {
+    if(isLoading){
+      return Scaffold(body: Center(child: CircularProgressIndicator(),),);
+
+    }if(cartItems.isEmpty){
+      return Scaffold(body: Center(child:Text("cart is empty"),),);
+    }
+    return  Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
         title: const Text('My Cart', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black)),
@@ -26,65 +56,28 @@ class CartScreen extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               itemCount: cartItems.length,
               itemBuilder: (context, index) {
-                final item = cartItems[index];
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      )
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.shopping_bag_outlined, color: Colors.blue, size: 30),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item['title'],
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '\$${item['price']}',
-                              style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Row(
+                final product = cartItems[index];
+                return ListTile(
+                    leading: Image.network(product.images?.first ?? ''),
+                    title: Text(product.title ?? ''),
+                    subtitle: Text("${product.price ?? 0} EGP"),
+                    trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          _buildQtyBtn(Icons.remove, () {}),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Text('${item['quantity']}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          ),
-                          _buildQtyBtn(Icons.add, () {}),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
+                        _buildQtyBtn(Icons.remove, () async {
+
+                      await getCart();
+                    }),
+                    SizedBox(width: 8),
+                    Text("1"),
+                    SizedBox(width: 8),
+                          _buildQtyBtn(Icons.add, () async {
+
+                            await getCart();
+                          }),
+                        ]));}
+                     ),
+                     ),
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -104,7 +97,7 @@ class CartScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text('Total Amount', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
-                    const Text('\$210.0', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.blue)),
+                    Text('\$${totalPrice().toStringAsFixed(2)}', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.blue)),
                   ],
                 ),
                 const SizedBox(height: 20),

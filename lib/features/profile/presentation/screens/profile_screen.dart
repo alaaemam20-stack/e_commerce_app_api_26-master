@@ -1,25 +1,107 @@
 import 'package:ecommerce_app_api_26/features/profile/data/models/profile_model.dart';
 import 'package:ecommerce_app_api_26/features/profile/data/profile_api/profile_api.dart';
 import 'package:flutter/material.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
-class ProfileScreen extends StatelessWidget {
+
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+
+  XFile? selectedImage;
+  ProfileModel? profileModel;
+  String? uploadedImage;
+  bool isLoading=true;
+  bool isEditing=false;
+  String? name;
+  String? role;
+
+
+  /// pick Image
+  Future<void> pickImage() async {
+    final pickedImage = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+    );
+    if (pickedImage != null) {
+      setState(() {
+        selectedImage = pickedImage;
+      });
+    }
+  }
+  /// update Profile
+  Future<void> updateProfile() async {
+    if (profileModel == null) return;
+    setState(() {
+      isLoading = true;
+    });
+    try {
+      if (selectedImage != null) {
+        uploadedImage = await ProfileApi().uploadImage(selectedImage!.path);
+      }
+      final EditedUser = await ProfileApi().updateProfile(
+        profileModel!.id!,
+        name!,
+        role!,
+        uploadedImage ?? profileModel!.avatar,
+      );
+      setState(() {
+        profileModel = EditedUser;
+        selectedImage = null;
+        isEditing = false;
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Profile updated successfully!")),
+      );
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  /// Get Profile
+  Future<void> getProfile() async {
+    try {
+      final user = await ProfileApi().getProfile();
+      setState(() {
+        profileModel = user;
+        name = user.name ?? '';
+        role = user.role ?? 'customer';
+        isLoading = false;
+      });
+    }
+    catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+
+  @override
+  void initState(){
+    getProfile();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
-      body:FutureBuilder<ProfileModel?>(future: ProfileApi().getProfile(), builder: (context,snapshot){
+      body:isLoading?Center(child: CircularProgressIndicator(),): SingleChildScrollView(
 
-
-        if(snapshot.connectionState==ConnectionState.waiting)
-          {return Center(child: CircularProgressIndicator());}
-        if(snapshot.hasError||snapshot.data==null)
-          {
-            return Center(child: Text("Error",style: TextStyle(fontSize: 25,color: Colors.red),));
-          }
-        ProfileModel? profile =snapshot.data;
-        return  SingleChildScrollView(
           child: Column(
             children: [
               Container(
@@ -30,7 +112,9 @@ class ProfileScreen extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(40)),
+                  borderRadius: const BorderRadius.vertical(
+                    bottom: Radius.circular(40),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -42,14 +126,23 @@ class ProfileScreen extends StatelessWidget {
                           BoxShadow(
                             color: Colors.black.withOpacity(0.1),
                             blurRadius: 10,
-                          )
+                          ),
                         ],
                       ),
-                      child: CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Colors.white,
-                        backgroundImage:NetworkImage(profile!.avatar??"https://picsum.photos/800") ,
-                        child: const Icon(Icons.person, size: 40, color: Colors.blue),
+                      child: ClipOval(
+                        child: selectedImage != null
+                            ? Image.file(
+                          File(selectedImage!.path),
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        )
+                            : Image.network(
+                          profileModel?.avatar ?? '',
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 20),
@@ -57,7 +150,7 @@ class ProfileScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          profile.name??"",
+                          profileModel?.name ?? '',
                           style: const TextStyle(
                             fontSize: 22,
                             fontWeight: FontWeight.bold,
@@ -65,19 +158,38 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                         profile.role??"member",
-                          style: const TextStyle(color: Colors.white70, fontSize: 14),
+                          profileModel?.role ?? ' ',
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
                         ),
                       ],
                     ),
                     const Spacer(),
                     IconButton(
-                      icon: const Icon(Icons.edit_outlined, color: Colors.white),
-                      onPressed: () {},
+                      icon: Icon(
+                        isEditing ? Icons.save : Icons.edit_outlined,
+                        color: Colors.white,
+                      ),
+                      onPressed: () async {
+                        if (isEditing == true) {
+                          updateProfile();
+                        } else {
+                          setState(() {
+                            isEditing = true;
+                          });
+                        }
+                      },
                     ),
                   ],
                 ),
               ),
+              if (isEditing == true)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: ElevatedButton.icon(
+                    onPressed: pickImage,
+                    label: const Text("Upload Image"),
+                  ),
+                ),
               Padding(
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
@@ -142,9 +254,8 @@ class ProfileScreen extends StatelessWidget {
               ),
             ],
           ),
-        );
 
-      })
+      ),
     );
   }
 

@@ -6,6 +6,8 @@ class Endpoints {
    static String profile="auth/profile";
    static String allProduct="products/";
    static String allCategories="categories/";
+   static String uploadImage ="files/upload";
+  static String updateProfile ="users";
    //Terminal window
 // [GET] products/?categoryId=1
 
@@ -17,4 +19,5 @@ class ApiKeys{
    static String password ="password";
    static String name= "name";
    static String avatar = "avatar";
+   static String role ="role";
 }

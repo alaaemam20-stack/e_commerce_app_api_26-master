@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
-
+import 'package:ecommerce_app_api_26/features/cart/data/cart_local_storage.dart';
+import '../../data/models/product_model.dart';
 class ProductCard extends StatelessWidget {
-  final String title;
-  final double price;
-  final String description;
-  final String image;
+  final ProductModel product;
 
   const ProductCard({
     super.key,
-    required this.title,
-    required this.price,
-    required this.description,
-    required this.image,
+    required this.product,
   });
 
   @override
@@ -49,7 +44,9 @@ class ProductCard extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius:BorderRadius.circular(10),
                         child: Image.network(
-                          image,
+                          product.images?.isNotEmpty == true
+                              ? product.images![0]
+                              : "",
 
                           fit: BoxFit.cover,
                           width:double.infinity,
@@ -89,14 +86,14 @@ class ProductCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  title??"no title",
+                  product.title??"no title",
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  description,
+                  product.description??"",
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -106,20 +103,30 @@ class ProductCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '\$$price',
+                      '\$${product.price}',
                       style: const TextStyle(
                         color: Colors.blue,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.blue,
-                        borderRadius: BorderRadius.circular(8),
+                    GestureDetector(
+                      onTap: () async {
+                        await CartLocalStorage.addToCart(product
+                        );
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Added to cart")),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.blue,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.add, color: Colors.white, size: 20),
                       ),
-                      child: const Icon(Icons.add, color: Colors.white, size: 20),
                     ),
                   ],
                 ),

@@ -41,10 +41,7 @@ class CategoryProducts extends StatelessWidget {
               itemBuilder: (context, index) {
                 final product = products[index];
                 return ProductCard(
-                  title: product.title!,
-                  price: product.price!,
-                  description: product.description!,
-                  image: product.images![0],
+                  product: product,
                 );
               },
             ),
